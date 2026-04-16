@@ -4,7 +4,7 @@ code of doom death and despair
 
 ## Gameplay Description
 
-**insert png**
+![titel-screen](major-mountaineer.png)
 
 ### Summary
 
