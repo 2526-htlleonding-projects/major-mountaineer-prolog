@@ -8,15 +8,36 @@
    retractall(zero_juice_turns(_)),
    retractall(honor(_)).
 
-i_am_at(someplace).
+i_am_at(mud_huzz).
 apple_juice(100).
 zero_juice_turns(0).
 honor(25).
 
-path(someplace, n, someplace).
+/* Starting Area */
 
-at(thing, someplace).
-at(apple_juice, someplace).
+path(mud_huzz, n, train_station).
+path(train_station, s, mud_huzz).
+
+path(mud_huzz, e, storage_building).
+path(storage_building, w, mud_huzz).
+
+path(mud_huzz, w, arm_chair).
+path(arm_chair, e, mud_huzz).
+
+/* This is a one way ticket. */
+
+path(train_station, e, hohe_dirn).
+path(train_station, n, traunstein).
+path(train_station, w, grosser_priel).
+
+path(traunstein, e, hohe_dirn).
+path(grosser_priel, e, hohe_dirn).
+
+/* HOHE DIRN */
+
+/* All things around the map. */
+
+at(apple_juice, storage_building).
 
 
 /* Meter step rules. */
@@ -204,6 +225,26 @@ go(Direction) :-
         ),
         end_turn(WasZeroBefore).
 
+route(Moves) :-
+        is_list(Moves),
+        execute_route_moves(Moves),
+        render_current_location.
+
+route(_) :-
+        fail.
+
+execute_route_moves([]).
+
+execute_route_moves([Direction|Rest]) :-
+        i_am_at(Here),
+        ( path(Here, Direction, There) ->
+                retract(i_am_at(Here)),
+                assert(i_am_at(There)),
+                execute_route_moves(Rest)
+        ;
+                true
+        ).
+
 
 /* This rule tells how to look about you. */
 
@@ -265,6 +306,7 @@ write_instructions :-
         write('take(Object).      -- to pick up an object.'), nl,
         write('drop(Object).      -- to put down an object.'), nl,
         write('look.              -- to look around you again.'), nl,
+        write('route([..]).       -- run a silent batch of moves without juice use.'), nl,
         write('drink.             -- to drink one apple_juice from inventory.'), nl,
         write('juicy.             -- to check apple juice meter.'), nl,
         write('instructions.      -- to see this message again.'), nl,
@@ -305,6 +347,60 @@ start :-
 
 /* These rules describe the various rooms. */
 
-describe(someplace) :-
-        write('You are someplace.'),
-        nl.
+/* Template describe block */
+describe(template) :-
+        write('---- [room] ----'), nl,
+        nl,
+        write(''), nl,
+        write(''), nl,
+        write(''), nl.
+
+describe(mud_huzz) :-
+        write('---- Mud Huzz ----'), nl,
+        nl,
+        write('You are in your mud huzz, your home.'), nl,
+        nl,
+        write('EAST there is your storage building with your chest.'), nl,
+        write('NORTH the train station from which you will start your adventures is located.'), nl.
+
+describe(train_station) :-
+        write('---- Train Station ----'), nl,
+        nl,
+        write('You are at the trusty ol train station. Here only one train leaves and arrives evrery day.'), nl,
+        nl,
+        write('EAST you can attempt the HOHE DIRN hike'), nl,
+        write('NORTH you try your luck in at the TRAUNSTEIN.'), nl,
+        write('WEST you can do the hardest tour, the GROSSE PRIEL.'), nl,
+        write('SOUTH you can return to your mud huzz.'), nl.
+
+describe(storage_building) :-
+        write('---- Storage Building ----'), nl,
+        nl,
+        write('You are in your storage building where your supplies are kept.'), nl,
+        nl,
+        write('WEST you can return to your mud huzz.'), nl.
+
+describe(arm_chair) :-
+        write('---- The Living Room ----'), nl,
+        nl,
+        write('You look at the empty arm chair where your wife used to sit.'), nl,
+        write('Its lonely ever since she died, you didnt dare touch the chair after the day of her funeral.'), nl,
+        write('You hope that maybe some day youll find someone wholl be as perfect as she was.'), nl,
+        nl,
+        write('EAST to return to the Mudd Huzz.'), nl.
+
+describe(hohe_dirn) :-
+        write('---- HOHE DIRN ----'), nl,
+        nl,
+        write('Welcome the the HOHE DIRN hike.'), nl,
+        write('This is the beginner hike, lets hope you are well stocked in apple juice.'), nl,
+        nl,
+        write('NORTH awaits the start of your journy. Be careful of the local population, they might be dangerous.'), nl.
+
+describe(traunstein) :-
+        write('Oops, seems like you fell asleep, you are now at ... HOHE DIRN?!'), nl,
+        nl, route([e]).
+
+describe(grosser_priel) :-
+        write('zzzzZZZzzz ... what? .. where am I? ... HOHE DIRN?!'), nl,
+        nl, route([e]).
